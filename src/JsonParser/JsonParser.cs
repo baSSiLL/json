@@ -238,13 +238,13 @@ namespace Json
                     var time = new DateTime(1970, 1, 1).ToUniversalTime();
                     value = time.AddSeconds(seconds);
                 }
-				 
+
                 if (info.PropertyType == typeof(byte[]))
                 {
                     var bytes = (List<object>)value;
                     value = bytes.Select(symbol => Convert.ToByte(symbol)).ToArray();
                 }
-				
+
                 if (info.PropertyType == typeof(double))
                 {
                     value = Convert.ToDouble(value);
@@ -375,9 +375,13 @@ namespace Json
                 return;
             }
 
+            #if PCL
+            var properties = item.GetRuntimeProperties().ToArray();
+            #else
             var properties = item.GetProperties(
                 BindingFlags.Public | BindingFlags.Instance
                 );
+            #endif
 
             _cache.Add(item, properties);
         }
@@ -494,9 +498,8 @@ namespace Json
             sb.Append("\"");
             var symbols = item.ToString().ToCharArray();
             
-            var unicodes = symbols
-				.Select(symbol => (int)symbol)
-				.Select(symbol => GetUnicode(symbol));
+            var unicodes = symbols.Select(symbol => GetUnicode(symbol));
+
             foreach (var unicode in unicodes)
             {
                 sb.Append(unicode);
