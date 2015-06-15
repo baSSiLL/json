@@ -242,7 +242,7 @@ namespace Json
                 if (info.PropertyType == typeof(byte[]))
                 {
                     var bytes = (List<object>)value;
-                    value = bytes.Select(Convert.ToByte).ToArray();
+                    value = bytes.Select(symbol => Convert.ToByte(symbol)).ToArray();
                 }
 
                 if (info.PropertyType == typeof(double))
@@ -375,9 +375,13 @@ namespace Json
                 return;
             }
 
+            #if PCL
+            var properties = item.GetRuntimeProperties().ToArray();
+            #else
             var properties = item.GetProperties(
                 BindingFlags.Public | BindingFlags.Instance
                 );
+            #endif
 
             _cache.Add(item, properties);
         }
@@ -494,7 +498,8 @@ namespace Json
             sb.Append("\"");
             var symbols = item.ToString().ToCharArray();
             
-            var unicodes = symbols.Select(symbol => (int)symbol).Select(GetUnicode);
+            var unicodes = symbols.Select(symbol => GetUnicode(symbol));
+
             foreach (var unicode in unicodes)
             {
                 sb.Append(unicode);
@@ -943,4 +948,3 @@ namespace Json
     }
 #endif
 }
-
