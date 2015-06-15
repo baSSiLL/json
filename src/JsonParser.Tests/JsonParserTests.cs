@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using NUnit.Framework;
 
 namespace Json.Tests
@@ -215,6 +216,70 @@ namespace Json.Tests
             var actual = JsonParser.Deserialize<StringWrapper>(serialized);
             
             Assert.AreEqual(expected, actual.Value);
+        }
+
+
+        public class DogArray
+        {
+            public Dog[] Dogs { get; set; }
+        }
+
+        public class DogEnumerable
+        {
+            public IEnumerable<Dog> Dogs { get; set; }
+        }
+
+        public class DogList
+        {
+            public List<Dog> Dogs { get; set; }
+        }
+
+        [Test]
+        public void Can_parse_typed_arrays()
+        {
+            var dogArray = JsonParser.Deserialize<DogArray>(@"{""dogs"":[{""name"":""dog0""},{""name"":""dog1""}]}");
+            Assert.AreEqual(dogArray.Dogs.Length, 2);
+            Assert.AreEqual(dogArray.Dogs[0].Name, "dog0");
+            Assert.AreEqual(dogArray.Dogs[1].Name, "dog1");
+        }
+        
+        [Test]
+        public void Can_parse_typed_arrays_empty()
+        {
+            var dogArray = JsonParser.Deserialize<DogArray>(@"{""dogs"":[]}");
+            Assert.AreEqual(dogArray.Dogs.Length, 0);
+        }
+
+        [Test]
+        public void Can_parse_typed_enumerables()
+        {
+            var dogEnumerable = JsonParser.Deserialize<DogEnumerable>(@"{""dogs"":[{""name"":""dog0""},{""name"":""dog1""}]}");
+            Assert.AreEqual(dogEnumerable.Dogs.Count(), 2);
+            Assert.AreEqual(dogEnumerable.Dogs.First().Name, "dog0");
+            Assert.AreEqual(dogEnumerable.Dogs.Last().Name, "dog1");
+        }
+
+        [Test]
+        public void Can_parse_typed_enumerables_empty()
+        {
+            var dogEnumerable = JsonParser.Deserialize<DogEnumerable>(@"{""dogs"":[]}");
+            Assert.AreEqual(dogEnumerable.Dogs.Count(), 0);
+        }
+
+        [Test]
+        public void Can_parse_typed_lists()
+        {
+            var dogList = JsonParser.Deserialize<DogList>(@"{""dogs"":[{""name"":""dog0""},{""name"":""dog1""}]}");
+            Assert.AreEqual(dogList.Dogs.Count, 2);
+            Assert.AreEqual(dogList.Dogs[0].Name, "dog0");
+            Assert.AreEqual(dogList.Dogs[1].Name, "dog1");
+        }
+
+        [Test]
+        public void Can_parse_typed_lists_empty()
+        {
+            var dogList = JsonParser.Deserialize<DogList>(@"{""dogs"":[]}");
+            Assert.AreEqual(dogList.Dogs.Count, 0);
         }
 
 #if NET40
