@@ -282,6 +282,21 @@ namespace Json.Tests
             Assert.AreEqual(dogList.Dogs.Count, 0);
         }
 
+
+        public class DogPair
+        {
+            public Dog Dog1 { get; set; }
+            public Dog Dog2 { get; set; }
+        }
+
+        [Test]
+        public void Can_parse_nestedProperties()
+        {
+            var dogPair = JsonParser.Deserialize<DogPair>(@"{""dog1"":{""name"":""dog1""}, ""dog2"":{""name"":""dog2""}}");
+            Assert.AreEqual(dogPair.Dog1.Name, "dog1");
+            Assert.AreEqual(dogPair.Dog2.Name, "dog2");
+        }
+
 #if NET40
         [Test]
         public void Can_deserialize_simple_dynamic_object()
