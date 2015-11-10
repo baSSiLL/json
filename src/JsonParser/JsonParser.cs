@@ -508,14 +508,26 @@ namespace Json
             sb.Append("\"");
         }
 
-        internal static string GetUnicode(int code)
+        internal static string GetUnicode(char character)
         {
             // http://unicode.org/roadmaps/bmp/
+            switch (character)
+            {
+                case '"': return @"\""";
+                case '/': return @"\/";
+                case '\\': return @"\\";
+                case '\b': return @"\b";
+                case '\f': return @"\f";
+                case '\n': return @"\n";
+                case '\r': return @"\r";
+                case '\t': return @"\t";
+            }
+
+            var code = (int)character;
             var basicLatin = code >= 32 && code <= 126;
             if (basicLatin)
             {
-                var value = (char)code;
-                return value == '"' ? @"\""" : new string(value, 1);
+                return new string(character, 1);
             }
 
             var unicode = BaseConvert(code, _base16, 4);
@@ -578,14 +590,24 @@ namespace Json
                         switch (symbol)
                         {
                             case '/':
+                            case '\\':
+                            case '"':
                                 sb.Append(symbol);
                                 break;
-                            case '\\':
                             case 'b':
+                                sb.Append('\b');
+                                break;
                             case 'f':
+                                sb.Append('\f');
+                                break;
                             case 'n':
+                                sb.Append('\n');
+                                break;
                             case 'r':
+                                sb.Append('\r');
+                                break;
                             case 't':
+                                sb.Append('\t');
                                 break;
                             case 'u': // Unicode literals
                                 if (index < data.Count - 5)
