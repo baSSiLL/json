@@ -51,6 +51,18 @@ namespace Json.Tests
         }
 
         [Test]
+        public void Can_parse_strings_with_escaped_characters()
+        {
+            const string json = @"{""string"":""\""\/\\\b\f\n\r\t""}";
+
+            var bag = JsonParser.FromJson(json);
+            Assert.IsNotNull(bag);
+            Assert.AreEqual(1, bag.Count);
+            Assert.True(bag.ContainsKey("string"));
+            Assert.AreEqual("\"/\\\b\f\n\r\t", bag["string"]);
+        }
+
+        [Test]
         public void Can_parse_arrays()
         {
             const string json = @"[{""color"": ""red"",""value"": ""#f00""}]";
@@ -93,10 +105,10 @@ namespace Json.Tests
         }
 
 		[Test]
-		public void Can_serialize_with_string_with_quotas()
+		public void Can_serialize_strings_with_characters_to_escape()
 		{
-			const string expected = @"{""name"":""Ba\""r""}";
-			var dog = new Dog { Name = "Ba\"r" };			
+			const string expected = @"{""name"":""Ba\""\/\\\b\f\n\r\tr""}";
+			var dog = new Dog { Name = "Ba\"/\\\b\f\n\r\tr" };			
 			var actual = JsonParser.Serialize(dog);
 			Assert.AreEqual(expected, actual);
 		}
@@ -198,26 +210,6 @@ namespace Json.Tests
         {
             public string Value { get; set; }
         }
-
-        [Test]
-        public void Can_ignore_solidus_in_string_literals()
-        {
-            const string expected = @"What is the phone #/digits?";
-
-            var serialized = JsonParser.Serialize(
-                new StringWrapper
-                    {
-                        Value = @"What is the phone #\/digits?"
-                    }
-                );
-
-            Console.WriteLine(serialized);
-
-            var actual = JsonParser.Deserialize<StringWrapper>(serialized);
-            
-            Assert.AreEqual(expected, actual.Value);
-        }
-
 
         public class DogArray
         {
