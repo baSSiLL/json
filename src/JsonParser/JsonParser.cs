@@ -86,6 +86,49 @@ namespace Json
             return YieldMember(name, out result);
         }
 
+        public override bool TryConvert(ConvertBinder binder, out object result)
+        {
+            var success = base.TryConvert(binder, out result);
+            
+            if (!success && binder.Explicit)
+            {
+                try
+                {
+                    result = Convert(binder.Type);
+                    success = true;
+                }
+                catch (InvalidCastException)
+                {
+                }
+            }
+
+            return success;
+        }
+
+        public object Convert(Type type)
+        {
+            try
+            {
+                return JsonParser.Deserialize(_hash, type);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidCastException(string.Format("This JSON object cannot be converted to '{0}'.", type.FullName), ex);
+            }
+        }
+
+        public T Convert<T>()
+        {
+            try
+            {
+                return JsonParser.Deserialize<T>(_hash);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidCastException(string.Format("This JSON object cannot be converted to '{0}'.", typeof(T).FullName), ex);
+            }
+        }
+
         private bool YieldMember(string name, out object result)
         {
             if (_hash.ContainsKey(name))
@@ -126,7 +169,7 @@ namespace Json
     /// A parser for JSON.
     /// <seealso cref="http://json.org" />
     /// </summary>
-    public class JsonParser
+    public static class JsonParser
     {
 #if !NETCF
         private const NumberStyles JsonNumbers = NumberStyles.Float;
@@ -155,22 +198,14 @@ namespace Json
 
         public static object Deserialize(string json, Type type)
         {
-            object instance;
-            var map = PrepareInstance(out instance, type);
             var bag = FromJson(json);
-
-            DeserializeImpl(map, bag, instance);
-            return instance;
+            return Deserialize(bag, type);
         }
 
         public static T Deserialize<T>(string json)
         {
-            T instance;
-            var map = PrepareInstance(out instance);
             var bag = FromJson(json);
-
-            DeserializeImpl(map, bag, instance);
-            return instance;
+            return Deserialize<T>(bag);
         }
 
 #if NET40
@@ -195,6 +230,24 @@ namespace Json
             return instance;
         }
 #endif
+
+        internal static object Deserialize(IDictionary<string, object> bag, Type type)
+        {
+            object instance;
+            var map = PrepareInstance(out instance, type);
+
+            DeserializeImpl(map, bag, instance);
+            return instance;
+        }
+
+        internal static T Deserialize<T>(IDictionary<string, object> bag)
+        {
+            T instance;
+            var map = PrepareInstance(out instance);
+
+            DeserializeImpl(map, bag, instance);
+            return instance;
+        }
 
         private static void DeserializeImpl(IEnumerable<PropertyInfo> map,
                                             IDictionary<string, object> bag,
